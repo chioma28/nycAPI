@@ -97,12 +97,26 @@ var userController = (app) =>{
     //adding records into the table
     app.post('/signup',[ 
         ///validation
-        check('email', 'invalid email,please put in a valid email') 
-                        .isEmail(), 
-        check('businessName', 'Business name length should not be less than 5 characters') 
-                        .isLength({ min: 6}), 
-        check('password', 'Password length should not be less than 8 characters') 
-        .isLength({ min : 8 })
+        check('email')
+        .isEmail()
+        .withMessage("invalid email address")
+        .normalizeEmail(),
+
+        check('businessName') 
+                        .isLength({ min: 6})
+                        .withMessage('Business name length should not be less than 5 characters')
+                        .isAscii(), 
+        check('password') 
+       .isLength({ min : 8 })
+      .withMessage("your password should have minimum of 8 characters")
+      .isUppercase()
+      .withMessage("Password should  contain at least one uppercase character")
+      .isLowercase()
+      .withMessage("Password should  contain at least one lowercase character")
+      .matches(/\d/)
+      .withMessage("your password should have at least one number")
+      .matches(/[!@#$%^&*(),.?":{}|<>]/)
+      .withMessage("your password should have at least one special character")
       ], (req, res) => { 
       
          // validationResult function checks whether 
