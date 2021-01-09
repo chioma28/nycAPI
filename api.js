@@ -13,12 +13,12 @@ var notification =  require('./controllers/notificationController');
 var payment = require('./controllers/paymentController');
 var advert = require('./controllers/advertController');
 // var upload = require('./controllers/uploadDocumentController');
-const PORT = process.env.PORT || 8600 || process.env.DB_PORT
+const PORT = process.env.PORT || 3000 || process.env.DB_PORT
 
 var corsOption = {
     // origin : ["https://naijayellowcatalogue.netlify.app", 
     // "https://naija-yellow-catalogue.herokuapp.com/",
-    // "http://localhost:8600"],
+    // "http://localhost:3000"],
     origin: '*',
     methods: "GET,POST,PUT,DELETE,OPTIONS",
     optionSuccessStatus: 200
