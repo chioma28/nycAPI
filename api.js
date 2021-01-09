@@ -16,9 +16,10 @@ var advert = require('./controllers/advertController');
 const PORT = process.env.PORT || 8600 || process.env.DB_PORT
 
 var corsOption = {
-    origin : ["https://naijayellowcatalogue.netlify.app", 
-    "https://naija-yellow-catalogue.herokuapp.com/",
-    "http://localhost:8600"],
+    // origin : ["https://naijayellowcatalogue.netlify.app", 
+    // "https://naija-yellow-catalogue.herokuapp.com/",
+    // "http://localhost:8600"],
+    origin: '*',
     methods: "GET,POST,PUT,DELETE,OPTIONS",
     optionSuccessStatus: 200
 }
