@@ -1,5 +1,5 @@
 const { response } = require('express');
-const sendMail = require('../middleware/mail');
+const sendEmail = require('../middleware/mail');
 //const { connect } = require('../models/db.config');
 const auth = require('./authController');
 const auditManager = require('./trailController');
@@ -39,17 +39,16 @@ let contactController = (app)=>{
         })
         /******** POST ROUTE ********/
         .post((req,res)=>{
-            const { fullName, email, title, message } = req.body;
-            connection.query(`insert into contact (fullName,email,title,message) 
+            const { fullName, email, subject, message } = req.body;
+            connection.query(`insert into contact (fullName,email,subject,message) 
             values (
                     '${fullName}',
                      '${email}', 
-                    '${title}', 
-                    '${message}')`), sendMail(fullName,email,title,message, (err, data)=>{
+                    '${subject}', 
+                    '${message}')`), sendEmail(fullName,email,subject,message, (err, data)=>{
 
                         if(err){
-                            res.status(500).json({ message: 'Internal Error' });
-                            res.status({ message: 'Email sent!!!' });
+                            res.status(500).send(err);
                             trail={
                                 moduleId: "3",
                                 actor: ` anonymous ${req.body.email}`,
@@ -57,8 +56,9 @@ let contactController = (app)=>{
                                 status: "failed"
                             }
                             auditManager.logTrail(trail);
-                        } else{
-                            res.status({ message: 'Email sent!!!' });
+                        } 
+                        else{
+                            res.status(200).send('Email sent successfully!');
                             trail={
                                 moduleId: "3",
                                 actor: ` anonymous ${req.body.email}`,

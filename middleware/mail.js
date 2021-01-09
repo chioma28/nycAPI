@@ -5,27 +5,28 @@ require('dotenv').config();
 
 const auth = {
     auth: {
-        api_key:'129342af71078b5ccdd95cd44e197552-4879ff27-1c5710ad',
-        domain: 'sandbox412a73c095824843955056f376fddb65.mailgun.org'
+        api_key: process.env.MAIL_API_KEY,
+        domain: process.env.MAIL_DOMAIN
     }
 };
 
 const transporter = nodemailer.createTransport(mailGun(auth));
 
-const sendEmail = ( fullName, email, title, message, to, ) => {
+const sendEmail = ( fullName, email, subject, message, to, ) => {
     const mailOptions = {
         from: email,
-        to: to,
+        to: 'naijayellowcatalog@gmail.com',
         subject: subject,
         html: text,
         text: message
     };
-    transporter.sendEmail(mailOptions, (err, info) => {
+    transporter.sendMail(mailOptions, (err, info) => {
         if (err) {
           console.log(`Error: ${err}`);
            
         }
         else {
+         
           console.log(`Response: ${info}`);
             // cb(null, info);
         }

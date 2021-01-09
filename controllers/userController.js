@@ -17,7 +17,7 @@ var userController = (app) =>{
 
     //instantiating the .env file
     process.env.ACCESS_TOKEN_SECRET
-    process.env.FORGOT_TOKEN_SECRET
+    process.env.RESET_TOKEN
 
     /**************************** Get Request *********************************/
     //getting all the records in the table
@@ -104,15 +104,10 @@ var userController = (app) =>{
 
         check('businessName') 
                         .isLength({ min: 6})
-                        .withMessage('Business name length should not be less than 5 characters')
-                        .isAscii(), 
+                        .withMessage('Business name length should not be less than 5 characters'), 
         check('password') 
        .isLength({ min : 8 })
       .withMessage("your password should have minimum of 8 characters")
-      .isUppercase()
-      .withMessage("Password should  contain at least one uppercase character")
-      .isLowercase()
-      .withMessage("Password should  contain at least one lowercase character")
       .matches(/\d/)
       .withMessage("your password should have at least one number")
       .matches(/[!@#$%^&*(),.?":{}|<>]/)
@@ -412,7 +407,7 @@ app.get('/users/profile/picture/:id',auth.authenticate,(req,res)=>{
                 delete resp[0].password
                 if(req.body.email == resp[0].email){
                     let data = {"data" : resp[0]}
-                    let forgotToken = jwt.sign(data,process.env.FORGOT_TOKEN_SECRET)
+                    let forgotToken = jwt.sign(data,process.env.RESET_TOKEN)
                     res.send(forgotToken)
                 }
 
