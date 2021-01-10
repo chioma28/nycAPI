@@ -20,7 +20,6 @@ var corsOption = {
     "https://naija-yellow-catalogue.herokuapp.com:3000",
     "http://localhost:3000"],
     methods: 'GET,POST,PUT,DELETE,OPTIONS',
-    mode: 'no-cors',
     preflightContinue: false,
     optionSuccessStatus: 200
 }
