@@ -15,18 +15,31 @@ var advert = require('./controllers/advertController');
 // var upload = require('./controllers/uploadDocumentController');
 const PORT = process.env.PORT || 3000 || process.env.DB_PORT
 
-var corsOption = {
-    origin : ["https://naija-yellow-catalogue.herokuapp.com/*",
-    "http://localhost*","http://localhost:3000"],
-    methods: 'GET,POST,PUT,DELETE',
-    preflightContinue: false,
-    optionSuccessStatus: 200
-}
-app = express();
-app.use(bodyParser.json(),cors(corsOption));
+// var corsOption = {
+//     origin : ["https://naija-yellow-catalogue.herokuapp.com/",
+//     ,"http://localhost:3000"],
+//     methods: 'GET,POST,PUT,DELETE',
+//     preflightContinue: false,
+//     optionSuccessStatus: 200
+// }
+var whitelist = ["https://naija-yellow-catalogue.herokuapp.com","http://localhost:3000"]
+
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1 || !origin) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+};
+
+const app = express();
+app.use(bodyParser.json());
+app.use(cors(corsOptions));
 
 app.get('/', (req, res) => {
-    res.send("Welcome to yellow page")
+    res.send("Welcome to yellow page")``
 })
 /*************************************** Instantiate Controllers **************************************/
 users(app);
