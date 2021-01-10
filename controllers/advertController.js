@@ -47,7 +47,7 @@ let advertController = (app)=>{
             auditManager.logTrail(trail);
         }
         else{
-          var imgSrc = 'http://localhost:8600/uploads/' + req.file.filename
+          var imgSrc = process.env.IMG_URL + req.file.filename
           var insertAdvert = `insert into adverts (userId,title,description,packageId,flyer) values ('${req.data.data.id}',
           '${req.body.title}',
           '${req.body.description}',

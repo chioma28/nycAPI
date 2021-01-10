@@ -16,11 +16,12 @@ var advert = require('./controllers/advertController');
 const PORT = process.env.PORT || 3000 || process.env.DB_PORT
 
 var corsOption = {
-    // origin : ["https://naijayellowcatalogue.netlify.app", 
-    // "https://naija-yellow-catalogue.herokuapp.com/",
-    // "http://localhost:3000"],
-    origin: '*',
-    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    origin : ["https://naijayellowcatalogue.netlify.app", 
+    "https://naija-yellow-catalogue.herokuapp.com:3000",
+    "http://localhost:3000"],
+    methods: 'GET,POST,PUT,DELETE,OPTIONS',
+    mode: 'no-cors',
+    preflightContinue: false,
     optionSuccessStatus: 200
 }
 app = express();
