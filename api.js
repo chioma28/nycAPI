@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 3000 || process.env.DB_PORT
 
 var corsOption = {
     origin : ["https://naija-yellow-catalogue.herokuapp.com/*",
-    "http://localhost/*"],
+    "http://localhost*","http://localhost:3000"],
     methods: 'GET,POST,PUT,DELETE',
     preflightContinue: false,
     optionSuccessStatus: 200
