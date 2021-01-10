@@ -122,7 +122,7 @@ let advertController = (app)=>{
         }  
         //admin checking the advert posted
         else if(req.data.data.roleId == 1){
-            connection.query(`select * from adverts where userId = '${req.body.userId}'`, (err, response)=>{
+            connection.query(`select * from adverts `, (err, response)=>{
                 if(err){
                     res.status(401).send(err);
                     trail={
