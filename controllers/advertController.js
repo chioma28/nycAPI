@@ -51,6 +51,7 @@ let advertController = (app)=>{
           var insertAdvert = `insert into adverts (userId,title,description,flyer) values ('${req.data.data.id}',
           '${req.body.title}',
           '${req.body.description}',
+          
           ?)`
           connection.query(insertAdvert,[imgSrc],(err,result)=>{
               if (err) { 
@@ -74,6 +75,7 @@ let advertController = (app)=>{
           })
         }
     }
+   
     else{
         res.status(401).send('Access Denied!');
         trail={
