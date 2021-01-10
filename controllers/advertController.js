@@ -48,10 +48,9 @@ let advertController = (app)=>{
         }
         else{
           var imgSrc = process.env.IMG_URL + req.file.filename
-          var insertAdvert = `insert into adverts (userId,title,description,packageId,flyer) values ('${req.data.data.id}',
+          var insertAdvert = `insert into adverts (userId,title,description,flyer) values ('${req.data.data.id}',
           '${req.body.title}',
           '${req.body.description}',
-          '${req.body.packageId}',
           ?)`
           connection.query(insertAdvert,[imgSrc],(err,result)=>{
               if (err) { 
