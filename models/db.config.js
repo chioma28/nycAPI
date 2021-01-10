@@ -12,7 +12,7 @@ var connection = mysql.createPool({
 //     if(err) throw err
 
 //     console.log('db server connected')
-// });
+// })
  
  
 module.exports = connection;
