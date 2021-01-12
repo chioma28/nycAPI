@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 3000 || process.env.DB_PORT
 //     preflightContinue: false,
 //     optionSuccessStatus: 200
 // }
-var whitelist = ["https://naija-yellow-catalogue.herokuapp.com","http://localhost:3000"]
+var whitelist = ["https://naija-yellow-catalogue.herokuapp.com","https://naija-yellow-catalogue.herokuapp.com/","http://localhost:3000"]
 
 var corsOptions = {
   origin: function (origin, callback) {

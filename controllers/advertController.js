@@ -163,7 +163,7 @@ let advertController = (app)=>{
       /******************************************* DELETING THE ADVERT *****************************************/
 
      app.delete('/adverts/:id', auth.authenticate, (req, res)=>{
-            connection.query(`delete from adverts where id = ${req.params.id}`, (err, response)=>{
+            connection.query(`delete from adverts where id = ${req.params.id} && userId = ${req.data.data.id}`, (err, response)=>{
                 if(err){
                     res.send(err);
                     trail={

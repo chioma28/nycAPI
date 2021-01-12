@@ -27,7 +27,7 @@ const sendEmail = ( fullName, email, subject, message, to, ) => {
         }
         else {
          
-          console.log(`Response: ${info}`);
+         // console.log(`Response: ${info}`);
             // cb(null, info);
         }
       }

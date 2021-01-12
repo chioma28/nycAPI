@@ -1,6 +1,6 @@
 const { response } = require('express');
 const sendEmail = require('../middleware/mail');
-//const { connect } = require('../models/db.config');
+const { connect } = require('../models/db.config');
 const auth = require('./authController');
 const auditManager = require('./trailController');
 /* ******************************* Contact controller ********************** */
@@ -8,11 +8,11 @@ let contactController = (app)=>{
     var connection = require('../models/db.config');
 
 /* ******************************* Contact router ********************** */
-    app.route('/contact')
+   // app.route('/contact')
 /******** GET ROUTE ********/
-        .get(auth.authenticate,(req, res)=>{
+        app.get('/contact',auth.authenticate,(req, res)=>{
             if(req.data.data.roleId == 1){
-            connection.query(`select * from contact`, (err, response)=>{
+            connection.query(`select * from contact`, (err, resp)=>{
                 if (err){
                     res.send(err);
                     trail={
@@ -38,7 +38,7 @@ let contactController = (app)=>{
 
         })
         /******** POST ROUTE ********/
-        .post((req,res)=>{
+        app.post('/contact',(req,res)=>{
             const { fullName, email, subject, message } = req.body;
             connection.query(`insert into contact (fullName,email,subject,message) 
             values (
