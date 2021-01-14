@@ -245,6 +245,7 @@ app.post('/login',(req,res)=>{
         if (err || resp.length < 1) {
             let responseObject = {
                 message : "Invalid email or password",
+
                 status : 400 
             }
            // res.statusCode=400;
