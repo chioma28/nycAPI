@@ -17,7 +17,7 @@ var userController = (app) =>{
 
     //instantiating the .env file
     process.env.ACCESS_TOKEN_SECRET
-    process.env.FORGOT_TOKEN_SECRET
+    process.env.RESET_TOKEN
 
     /**************************** Get Request *********************************/
     //getting all the records in the table
@@ -97,12 +97,21 @@ var userController = (app) =>{
     //adding records into the table
     app.post('/signup',[ 
         ///validation
-        check('email', 'invalid email') 
-                        .isEmail(), 
-        check('businessName', 'Name length should not be less than 5 characters') 
-                        .isLength({ min: 6}), 
-        check('password', 'Password length should not be less than 8 characters') 
-        .isLength({ min : 8 })
+        check('email')
+        .isEmail()
+        .withMessage("invalid email address")
+        .normalizeEmail(),
+
+        check('businessName') 
+                        .isLength({ min: 6})
+                        .withMessage('Business name length should not be less than 5 characters'), 
+        check('password') 
+       .isLength({ min : 8 })
+      .withMessage("your password should have minimum of 8 characters")
+      .matches(/\d/)
+      .withMessage("your password should have at least one number")
+      .matches(/[!@#$%^&*(),.?":{}|<>]/)
+      .withMessage("your password should have at least one special character")
       ], (req, res) => { 
       
          // validationResult function checks whether 
@@ -118,13 +127,8 @@ var userController = (app) =>{
         
         //check if email exists,
       connection.query(`select email from users where email = '${req.body.email}'`,(err,response)=>{
-        if(response.length > 0 && response){
-            let responseObject = {
-                message : 'This email already exists!',
-                status : 400 
-            }
-            res.send(responseObject).status(400);
-               
+        if(response.length > 0 && response ){
+               res.status(400).send('This email already exists!');
                }
       else{
         
@@ -133,22 +137,24 @@ var userController = (app) =>{
                 if (errh) {
                     res.status(402).send(err);
                 }
+                console.log(req.body)
                 //const otpCode = randomstring.generate(); 
                                  
                     connection.query(`insert into users (roleId,businessName,email,password) 
-                    values ('2',
+                    values (2,
                         '${req.body.businessName}',
                         '${req.body.email}',
-                        '${hash}')`,(err,resp)=>{
-                            if(err)
-                            {
-                                res.status(400).send(err);
-                            }
-                            let responseObject = {
-                                message :`User ${req.body.businessName} has been successfully registered`,
-                                status : 200 
-                            }
-                            res.send(responseObject).status(200);
+                        '${hash}'`,(err,resp)=>{
+                            // if(err)
+                            // {
+                            //     res.status(400).send(err);
+
+                            // } 
+                            // const encodedOtpCode = encodeURIComponent(
+                            //     Buffer.from(`${otpCode}`, "binary").toString("base64")
+                            //   );
+                            console.log(err,resp)
+                            res.send(`User ${req.body.businessName} has been successfully registered`);
                             trail={
                                 moduleId: "11",
                                 actor: `${req.body.email}`,
@@ -173,16 +179,14 @@ var userController = (app) =>{
 
           /******************************** Put Request **************************************/
           //user updating records after logging in the table
-        app.put('/users/profile/:id',auth.authenticate,(req,res)=>{
-            if(req.params.id == req.data.data.id)
-            {
+        app.put('/users/profile',auth.authenticate,(req,res)=>{
 
                 connection.query(`update users set phoneNumber = '${req.body.phoneNumber}',
                  website ='${req.body.website}',
                  description ='${req.body.description}',
                  state ='${req.body.state}',
                  city ='${req.body.city}',
-                 userCategory ='${req.body.userCategory}' where id = ${req.params.id}`,(err,resp)=>{
+                 userCategory ='${req.body.userCategory}' where id = ${req.data.data.id}`,(err,resp)=>{
                     if (err) {
                         res.status(400).send(err);
                     trail={
@@ -194,7 +198,7 @@ var userController = (app) =>{
                     auditManager.logTrail(trail);
                 }
                     
-                    res.send(`The details of user with id ${req.params.id} has been modified`);
+                    res.send(`${req.data.data.businessName}`);
                     trail={
                         moduleId: "11",
                         actor: `${req.body.email}`,
@@ -203,7 +207,6 @@ var userController = (app) =>{
                     }
                     auditManager.logTrail(trail);
                 })
-            }
            
         })
         
@@ -242,9 +245,10 @@ app.post('/login',(req,res)=>{
     connection.query(`select * from users where email = '${req.body.email}'`,(err,resp)=>{
         if (err || resp.length < 1) {
             let responseObject = {
-                message :'Invalid email or password',
+                message : "Invalid email or password",
                 status : 400 
             }
+           // res.statusCode=400;
             res.send(responseObject).status(400);
             trail={
                 moduleId: "11",
@@ -261,11 +265,12 @@ app.post('/login',(req,res)=>{
                      
                  
                  if (result === false) {
-                    let responseObject = {
-                        message :`Invalid email or password`,
-                        status : 400 
-                    }
-                    res.send(responseObject).status(400);
+                    // res.statusCode = 400;
+                     let responseObject = {
+                         message : "Invalid email or password",
+                         status : 400 
+                     }
+                     res.send(responseObject).status(400);
                      trail={
                         moduleId: "11",
                         actor: "anonymous",
@@ -413,7 +418,7 @@ app.get('/users/profile/picture/:id',auth.authenticate,(req,res)=>{
                 delete resp[0].password
                 if(req.body.email == resp[0].email){
                     let data = {"data" : resp[0]}
-                    let forgotToken = jwt.sign(data,process.env.FORGOT_TOKEN_SECRET)
+                    let forgotToken = jwt.sign(data,process.env.RESET_TOKEN)
                     res.send(forgotToken)
                 }
 
