@@ -243,8 +243,12 @@ var userController = (app) =>{
 app.post('/login',(req,res)=>{
     connection.query(`select * from users where email = '${req.body.email}'`,(err,resp)=>{
         if (err || resp.length < 1) {
-            res.statusCode=400;
-            res.send("Invalid email or password");
+            let responseObject = {
+                message : "Invalid email or password",
+                status : 400 
+            }
+           // res.statusCode=400;
+            res.send(responseObject).status(400);
             trail={
                 moduleId: "11",
                 actor: "anonymous",
