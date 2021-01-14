@@ -289,10 +289,13 @@ app.post('/login',(req,res)=>{
                         let accessToken =  jwt.sign(data,process.env.ACCESS_TOKEN_SECRET)
                          //res.send(accessToken)
                        let tokenData ={
-                           "data": resp[0],
+                           //"data": resp[0],
+                           message :`Login successful!`,
                            "Token":accessToken
                        }
-                       res.send(tokenData)
+                       
+                    res.send(tokenData).status(200);
+                       
                        trail={
                         moduleId: "11",
                         actor: `${req.body.email}`,
