@@ -128,7 +128,7 @@ var userController = (app) =>{
         //check if email exists,
       connection.query(`select email from users where email = '${req.body.email}'`,(err,response)=>{
         if(response.length > 0 ){
-               res.send('This email already exists!');
+               res.status(400).send('This email already exists!');
                }
       else{
         
@@ -137,17 +137,22 @@ var userController = (app) =>{
                 if (errh) {
                     res.status(402).send(err);
                 }
-               // const otpCode = randomstring.generate(); 
+                const otpCode = randomstring.generate(); 
                                  
-                    connection.query(`insert into users (roleId,businessName,email,password) 
+                    connection.query(`insert into users (roleId,businessName,email,password,otp) 
                     values ('2',
                         '${req.body.businessName}',
                         '${req.body.email}',
-                        '${hash}')`,(err,resp)=>{
+                        '${hash}',
+                        '${otpCode})`,(err,resp)=>{
                             if(err)
                             {
                                 res.status(400).send(err);
-                            }
+                            } 
+                            const encodedOtpCode = encodeURIComponent(
+                                Buffer.from(`${otpCode}`, "binary").toString("base64")
+                              );
+
                             res.send(`User ${req.body.businessName} has been successfully registered`);
                             trail={
                                 moduleId: "11",
@@ -173,16 +178,14 @@ var userController = (app) =>{
 
           /******************************** Put Request **************************************/
           //user updating records after logging in the table
-        app.put('/users/profile/:id',auth.authenticate,(req,res)=>{
-            if(req.params.id == req.data.data.id)
-            {
+        app.put('/users/profile',auth.authenticate,(req,res)=>{
 
                 connection.query(`update users set phoneNumber = '${req.body.phoneNumber}',
                  website ='${req.body.website}',
                  description ='${req.body.description}',
                  state ='${req.body.state}',
                  city ='${req.body.city}',
-                 userCategory ='${req.body.userCategory}' where id = ${req.params.id}`,(err,resp)=>{
+                 userCategory ='${req.body.userCategory}' where id = ${req.data.data.id}`,(err,resp)=>{
                     if (err) {
                         res.status(400).send(err);
                     trail={
@@ -194,7 +197,7 @@ var userController = (app) =>{
                     auditManager.logTrail(trail);
                 }
                     
-                    res.send(`The details of user with id ${req.params.id} has been modified`);
+                    res.send(`${req.data.data.businessName}`);
                     trail={
                         moduleId: "11",
                         actor: `${req.body.email}`,
@@ -203,7 +206,6 @@ var userController = (app) =>{
                     }
                     auditManager.logTrail(trail);
                 })
-            }
            
         })
         
@@ -258,7 +260,7 @@ app.post('/login',(req,res)=>{
                      
                  
                  if (result === false) {
-                     res.statusCode = 401;
+                     res.statusCode = 400;
                      res.send('Invalid email or password');
                      trail={
                         moduleId: "11",

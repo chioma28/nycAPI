@@ -48,10 +48,10 @@ let advertController = (app)=>{
         }
         else{
           var imgSrc = process.env.IMG_URL + req.file.filename
-          var insertAdvert = `insert into adverts (userId,title,description,flyer) values ('${req.data.data.id}',
+          var insertAdvert = `insert into adverts (userId,title,description,isEnabled,flyer) values ('${req.data.data.id}',
           '${req.body.title}',
           '${req.body.description}',
-          
+          'disabled',
           ?)`
           connection.query(insertAdvert,[imgSrc],(err,result)=>{
               if (err) { 
@@ -64,7 +64,7 @@ let advertController = (app)=>{
                 }
                 auditManager.logTrail(trail);
               }
-              res.send('Advert successfully posted');
+              res.send('Advert successfully posted. Please wait for admin to approve your post before you will be able to view it.');
               trail={
                 moduleId: "1",
                 actor: `${req.data.data.email}`,
@@ -95,7 +95,14 @@ let advertController = (app)=>{
  /******************************************* GETTING THE ADVERT *****************************************/
  //users checking the adverts posted
     app.get('/adverts',auth.authenticate,(req,res)=>{
-        if(req.data.data.roleId == 2){
+        if(req.data.data.roleId == 2 ){
+            connection.query(`select isEnabled from adverts where userId = '${req.data.data.id}'`,(err,result)=>{
+                if(err){
+                    res.status(400).send(err);
+                }
+                else{
+                    if(result == 'enabled'){
+                 
         connection.query(`select title,description,flyer from adverts where userId = '${req.data.data.id}'`, (err, response)=>{
             if(err){
                 res.status(401).send(err);
@@ -107,7 +114,8 @@ let advertController = (app)=>{
                 }
                 auditManager.logTrail(trail);
 
-            }else{
+            }
+            else{
                 res.send(response);
                 trail={
                     moduleId: "1",
@@ -119,46 +127,56 @@ let advertController = (app)=>{
 
             }
         })
-        }  
+          
         //admin checking the advert posted
-        else if(req.data.data.roleId == 1){
-            connection.query(`select title,description,flyer from adverts `, (err, response)=>{
-                if(err){
-                    res.status(401).send(err);
-                    trail={
-                        moduleId: "1",
-                        actor: `${req.data.data.email}`,
-                        action: `${req.data.data.email} was unable to view adverts `,
-                        status: "failed"
-                    }
-                    auditManager.logTrail(trail);
+        // else if(req.data.data.roleId == 1){
+        //     connection.query(`select title,description,flyer from adverts `, (err, response)=>{
+        //         if(err){
+        //             res.status(401).send(err);
+        //             trail={
+        //                 moduleId: "1",
+        //                 actor: `${req.data.data.email}`,
+        //                 action: `${req.data.data.email} was unable to view adverts `,
+        //                 status: "failed"
+        //             }
+        //             auditManager.logTrail(trail);
     
     
-                }else{
-                    res.send(response);
-                    trail={
-                        moduleId: "1",
-                        actor: `${req.data.data.email}`,
-                        action: `${req.data.data.email} is able to view adverts `,
-                        status: "success"
-                    }
-                    auditManager.logTrail(trail);
+        //         }else{
+        //             res.send(response);
+        //             trail={
+        //                 moduleId: "1",
+        //                 actor: `${req.data.data.email}`,
+        //                 action: `${req.data.data.email} is able to view adverts `,
+        //                 status: "success"
+        //             }
+        //             auditManager.logTrail(trail);
     
-                }
-            })
-            } 
-            else{
-                res.status(403).send('Access Denied!');
-                trail={
-                    moduleId: "1",
-                    actor: `${req.data.data.email}`,
-                    action: `${req.data.data.email} is unauthorized to view adverts `,
-                    status: "danger"
-                }
-                auditManager.logTrail(trail);
-            } 
+        //         }
+        //     })
+           // } 
+            // 
         
+        }
+    }
     })
+    }
+
+
+else{
+        res.status(403).send('Access Denied!');
+        trail={
+            moduleId: "1",
+            actor: `${req.data.data.email}`,
+            action: `${req.data.data.email} is unauthorized to view adverts `,
+            status: "danger"
+        }
+        auditManager.logTrail(trail);
+    }
+}) 
+
+    
+    
   
       /******************************************* DELETING THE ADVERT *****************************************/
 
