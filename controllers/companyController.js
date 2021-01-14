@@ -1,11 +1,11 @@
-var companyController = (app) =>{
+
     var connection = require('../models/db.config');
-    
+    const bodyParser = require('body-parser');
     
     /**************************** post Request *********************************/
     
-         app.post('/company/search', (req,res)=>{
-             const {businessName, city, userCategory, keyword} = req.body;
+        const searchBusiness = (req,res, next)=>{
+             const {businessName, state, userCategory, keyword} = req.body;
     
             //  const sql = `SELECT businessName, city, userCategory, (((acos(sin(('${latitude}'*pi()/180)) * sin((latitude*pi()/180)) +
             //  cos(('${latitude}'*pi()/180)) * cos((latitude*pi()/180)) * cos((('${longitude}' - longitude)
@@ -13,7 +13,7 @@ var companyController = (app) =>{
             //  as distance FROM users WHERE businessName like '%${keyword}%' HAVING distance <= 100 ORDER BY distance ASC`
 
              
-             const sql = `SELECT businessName, city, userCategory
+             const sql = `SELECT businessName, state, userCategory
              FROM users WHERE businessName like '%${keyword}%'`
             // const sql = `SELECT businessName, city, userCategory`
 
@@ -28,10 +28,9 @@ var companyController = (app) =>{
     
     
     
-         })
-
-         app.post('/company/search/city', (req,res)=>{
-            const {businessName, city, userCategory, keyword} = req.body;
+         }
+            const searchState = (req,res, next)=>{
+            const {businessName, state, userCategory, keyword} = req.body;
    
            //  const sql = `SELECT businessName, city, userCategory, (((acos(sin(('${latitude}'*pi()/180)) * sin((latitude*pi()/180)) +
            //  cos(('${latitude}'*pi()/180)) * cos((latitude*pi()/180)) * cos((('${longitude}' - longitude)
@@ -39,8 +38,8 @@ var companyController = (app) =>{
            //  as distance FROM users WHERE businessName like '%${keyword}%' HAVING distance <= 100 ORDER BY distance ASC`
 
             
-            const sql = `SELECT businessName, city, userCategory
-            FROM users WHERE city like '%${keyword}%'`
+            const sql = `SELECT businessName, state, userCategory
+            FROM users WHERE state like '%${keyword}%'`
            // const sql = `SELECT businessName, city, userCategory`
 
            connection.query(sql, (err, response)=>{
@@ -54,12 +53,12 @@ var companyController = (app) =>{
    
    
    
-        })
+        }
 
 
 
-        app.post('/company/search/category', (req,res)=>{
-            const {businessName, city, userCategory, keyword} = req.body;
+      const searchCategory = (req,res, next)=>{
+            const {businessName, state, userCategory, keyword} = req.body;
    
            //  const sql = `SELECT businessName, city, userCategory, (((acos(sin(('${latitude}'*pi()/180)) * sin((latitude*pi()/180)) +
            //  cos(('${latitude}'*pi()/180)) * cos((latitude*pi()/180)) * cos((('${longitude}' - longitude)
@@ -67,7 +66,7 @@ var companyController = (app) =>{
            //  as distance FROM users WHERE businessName like '%${keyword}%' HAVING distance <= 100 ORDER BY distance ASC`
 
             
-            const sql = `SELECT businessName, city, userCategory
+            const sql = `SELECT businessName, state, userCategory
             FROM users WHERE userCategory like '%${keyword}%'`
            // const sql = `SELECT businessName, city, userCategory`
 
@@ -82,11 +81,11 @@ var companyController = (app) =>{
    
    
    
-        })
+        }
     
         
     
     
     
-    }
-    module.exports = companyController
+    
+    module.exports = {searchCategory, searchState, searchBusiness}

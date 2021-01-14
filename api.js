@@ -1,7 +1,10 @@
+//PACKAGES
 const express = require('express');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 var cors = require('cors');
+
+//CONTROLLERS
 var users = require('./controllers/userController');
 var roles = require('./controllers/roleController');
 var category = require('./controllers/categoryController');
@@ -12,6 +15,10 @@ var faq = require('./controllers/faqController');
 var notification =  require('./controllers/notificationController');
 var payment = require('./controllers/paymentController');
 var advert = require('./controllers/advertController');
+
+//ROUTES
+const companyRoute = require('./routes/company-route');
+
 // var upload = require('./controllers/uploadDocumentController');
 const PORT = process.env.PORT || 3000 || process.env.DB_PORT
 
@@ -34,9 +41,10 @@ var corsOptions = {
   }
 };
 
-const app = express();
+app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use('/api/company', companyRoute);
 
 
 app.get('/', (req, res) => {
@@ -46,7 +54,7 @@ app.get('/', (req, res) => {
 users(app);
 roles(app);
 category(app);
-company(app);
+//company(app);
 contact(app);
 permission(app);
 faq(app);
