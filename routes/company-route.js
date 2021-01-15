@@ -10,11 +10,13 @@ const companyController  =require('../controllers/companyController');
 
 const router = express.Router();
 
-router.get('/search/business', companyController.searchBusiness)
+//router.get('/search/business', companyController.searchBusiness)
 
 router.get('/search/category', companyController.searchCategory)
 
 router.get('/search/state', companyController.searchState)
+
+router.get('/search', companyController.searchBusiness);
 
 
 
