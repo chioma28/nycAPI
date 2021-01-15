@@ -49,7 +49,7 @@ var corsOptions = {
 app = express();
 app.use(cors());
 app.use(bodyParser.json());
-app.use('/api', companyRoute);
+app.use('/api/company', companyRoute);
 //app.use('/api', userRoute);
 //app.use('/api', contactRoute);
 //app.use('/api/upload', uploadRoute);
