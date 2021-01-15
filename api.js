@@ -15,14 +15,14 @@ var faq = require('./controllers/faqController');
 var notification =  require('./controllers/notificationController');
 var payment = require('./controllers/paymentController');
 var advert = require('./controllers/advertController');
-//var upload = require('./controllers/uploadDocumentController');
+var upload = require('./controllers/uploadDocumentController');
 
 
 //ROUTES
 const companyRoute = require('./routes/company-route');
-//const userRoute = require('./routes/user-route');
+const userRoute = require('./routes/user-route');
 //const contactRoute = require('./routes/contact-route');
-//const uploadRoute = require('./routes/upload-route');
+const uploadRoute = require('./routes/upload-route');
 
 // var upload = require('./controllers/uploadDocumentController');
 const PORT = process.env.PORT || 3000 || process.env.DB_PORT
@@ -50,16 +50,16 @@ app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use('/api/company', companyRoute);
-//app.use('/api', userRoute);
+app.use('/api', userRoute);
 //app.use('/api', contactRoute);
-//app.use('/api/upload', uploadRoute);
+app.use('/api/upload', uploadRoute);
 
 
 app.get('/', (req, res) => {
     res.send("Welcome to yellow page")``
 })
 /*************************************** Instantiate Controllers **************************************/
-users(app);
+//users(app);
 roles(app);
 category(app);
 //company(app);
