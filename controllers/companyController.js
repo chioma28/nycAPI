@@ -48,14 +48,13 @@
     
     
     //      }
-            const findBusiness = (req,res) =>{
+            const findBusiness = (req,res,next) =>{
             
-            const sql = `SELECT businessName, email, phoneNumber, description, website , state, userCategory FROM users`
-
-           connection.query(sql, (err, response)=>{
+           connection.query(`SELECT businessName, email, phoneNumber, description, website , state, userCategory FROM users`, (err, response)=>{
                if(err){
                    console.log(err)
                } else{
+
                    res.send(response);
                }
    
@@ -64,6 +63,7 @@
    
    
         }
+
 
 
 
