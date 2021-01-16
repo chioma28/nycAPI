@@ -1,6 +1,4 @@
-const text = require('body-parser/lib/types/text');
-
-
+var userController = (app) =>{
     //import all the required dependencies
 
     var connection = require('../models/db.config');
@@ -15,7 +13,6 @@ const text = require('body-parser/lib/types/text');
     const sendEmail = require('../middleware/mail');
     const auditManager = require('./trailController');
     const { check, validationResult } = require('express-validator');//validator
-    const sendMail = require('../middleware/mail');
     require('dotenv').config();
 
     //instantiating the .env file
@@ -24,7 +21,7 @@ const text = require('body-parser/lib/types/text');
 
     /**************************** Get Request *********************************/
     //getting all the records in the table
-    const getAllUser = (req,res, next)=>{
+    app.get('/admin',auth.authenticate,(req,res)=>{
         // checking if you are an admin to get access to view all records
          
         if(req.data.data.roleId == 1){
@@ -50,10 +47,10 @@ const text = require('body-parser/lib/types/text');
             auditManager.logTrail(trail);
         }
         
-    }
+    })
 
     //getting the details of any user by id
-    const getUserId = (req,res, next)=>{
+    app.get('/admin/:id',auth.authenticate,(req,res)=>{
         // checking if you are an admin to get access to view all records
          
         if(req.data.data.roleId == 1){
@@ -67,10 +64,10 @@ const text = require('body-parser/lib/types/text');
             res.send('You have not been authorized to perform this function').status(403)
         }
         
-    }
+    })
 
     //users getting their records from the table by id
-   const getUserByUser = (req,res)=>{
+    app.get('/users/:id',auth.authenticate,(req,res)=>{
         if(req.params.id == req.data.data.id)
         {
             connection.query(`select * from users where id = '${req.params.id}'`,(err,resp)=>{
@@ -94,11 +91,19 @@ const text = require('body-parser/lib/types/text');
         }
         auditManager.logTrail(trail);
         
-    }
+    })
       
     /******************************** Post Request **************************************/
     //adding records into the table
-   const userSignup =  (req, res) => { 
+    app.post('/signup',[ 
+        ///validation
+        check('email', 'invalid email') 
+                        .isEmail(), 
+        check('businessName', 'Name length should not be less than 5 characters') 
+                        .isLength({ min: 6}), 
+        check('password', 'Password length should not be less than 8 characters') 
+        .isLength({ min : 8 })
+      ], (req, res) => { 
       
          // validationResult function checks whether 
         // an error occurs or not and returns an object 
@@ -113,7 +118,7 @@ const text = require('body-parser/lib/types/text');
         
         //check if email exists,
       connection.query(`select email from users where email = '${req.body.email}'`,(err,response)=>{
-        if(response.length > 0 ){
+        if(response.length > 0 && response){
             let responseObject = {
                 message : 'This email already exists!',
                 status : 400 
@@ -128,46 +133,22 @@ const text = require('body-parser/lib/types/text');
                 if (errh) {
                     res.status(402).send(err);
                 }
-
-
-
-                // Sending verification link to user
-
-               var otpToken = require('crypto').randomBytes(64).toString('hex');
-               const secretCode = encodeURIComponent(otpToken);
-
-                    connection.query(`insert into users (roleId,businessName,email,password, otp) 
+                //const otpCode = randomstring.generate(); 
+                                 
+                    connection.query(`insert into users (roleId,businessName,email,password) 
                     values ('2',
                         '${req.body.businessName}',
                         '${req.body.email}',
-                        '${hash}', '${otpToken}')`,(err,resp)=>{
+                        '${hash}')`,(err,resp)=>{
                             if(err)
                             {
                                 res.status(400).send(err);
                             }
-    const newUserId = resp.insertId      
-    var accessToken = jwt.sign({uid : newUserId, token: secretCode}, process.env.SIGNUP_TOKEN, {expiresIn: '2h'})
-
-    var linkCode = encodeURIComponent(Buffer.from(`${accessToken}`, 'binary').toString('base64'));
-
-  
-    var message = `Hi ${req.body.businessName}, <br/>
-  <p>Welcome to <b>naijayellowcatagogue</b>, you are a click away from accessing your account. Click on the button below to activate your account.</p>
-  <center><a href="${process.env.BASE_URL}/auth/activation/${linkCode }"><button style="padding: 12px; color: white; background: #000066; border: none; border-radius: 6px;">Activate My Account</button></a></center> 
-  <p>Or Copy the link below to your browser:<br/>
-  <a href="${process.env.BASE_URL}/auth/activation/${linkCode}">${process.env.BASE_URL}/auth/activation/${linkCode}}</a></p>
-  <br/>Thanks.`
-
-
-    const sendEmail = ( req.body.businessName, "naijayellowcatalog@gmail.com", "Registration successful, activate your account", message, req.body.email )
-  
-
-                    let responseObject = {
-                        message :`User ${req.body.businessName} has been successfully registered`,
-                        status : 200 
-                    }
-                    res.send(responseObject).status(200);
-                            
+                            let responseObject = {
+                                message :`User ${req.body.businessName} has been successfully registered`,
+                                status : 200 
+                            }
+                            res.send(responseObject).status(200);
                             trail={
                                 moduleId: "11",
                                 actor: `${req.body.email}`,
@@ -186,82 +167,50 @@ const text = require('body-parser/lib/types/text');
         
        
     })
-        }
-        
-   const authActivate = (req, res)=>{
-        var { linkCode } = req.params;
-        
-        if(!accessToken) return res.status(403).json({ message: 'Error!!! Check Link Again' });
-        // DECODE URI COMPONENT
-        const decodedToken = decodeURIComponent(linkCode);
-        // DECODE BACK TO BINARY
-        token = Buffer.from(decodedToken, 'base64').toString();
-        
-        // VERIFY TOKEN
-        jwt.verify(token, process.env.SIGNUP_TOKEN_SECRET, (err, data) => {
-            if (err) { 
-                return res.status(401).json({ message: 'Error!!! Check Link Again' }); 
-            }
-            // DECODE BASE64 TO GET THE RAW DATA
-            userID = Buffer.from(data.uid, 'base64').toString();
-            otpToken = Buffer.from(data.token, 'base64').toString();
-            connection.query(`SELECT email, otp, isEnabled FROM users WHERE ID = ${userID}`, (err, resp) => {
-                if (err) { return res.status(422).json({message : err.sqlMessage}); }
-                if (resp.length > 0) {
-                    if (resp[0].isEnabled == 1) {
-                        return res.status(200).json({message : 'Account already activated! Proceed to login'})
-                    }
-                    if (resp[0].token == otpToken) {
-                        connection.query(`UPDATE users SET isEnabled = 1 WHERE ID = ${userID}`, (err2, resp2) => {
-                            if (err2) { return res.status(422).json({message : err2.sqlMessage}); }
-                            return res.status(201).json({message : 'Account activated! You may proceed to login'})
-                        });
-                    } else {
-                        return res.status(401).json({message : 'Error validating account! Check Activation Link Again'})
-                    }
-                } else {
-                    return res.status(404).json({message : 'No account found! Check Activation Link Again'})
-                }
-            });
-        });
-      }
+        })
+    
+
 
           /******************************** Put Request **************************************/
           //user updating records after logging in the table
-       const userUpdateRecords =  (req,res)=>{
-        connection.query(`update users set phoneNumber = '${req.body.phoneNumber}',
-        website ='${req.body.website}',
-        description ='${req.body.description}',
-        state ='${req.body.state}',
-        city ='${req.body.city}',
-        userCategory ='${req.body.userCategory}' where id = ${req.data.data.id}`,(err,resp)=>{
-           if (err) {
-               res.status(400).send(err);
-           trail={
-               moduleId: "11",
-               actor: `${req.body.email}`,
-               action: `${req.body.email} profile update failed `,
-               status: "failed"
-           }
-           auditManager.logTrail(trail);
-       }
-           
-           res.send(`Your profile has been successfully updated`);
-           trail={
-               moduleId: "11",
-               actor: `${req.body.email}`,
-               action: `${req.body.email} profile update successful `,
-               status: "success"
-           }
-           auditManager.logTrail(trail);
-       })
+        app.put('/users/profile/:id',auth.authenticate,(req,res)=>{
+            if(req.params.id == req.data.data.id)
+            {
 
-        }
+                connection.query(`update users set phoneNumber = '${req.body.phoneNumber}',
+                 website ='${req.body.website}',
+                 description ='${req.body.description}',
+                 state ='${req.body.state}',
+                 city ='${req.body.city}',
+                 userCategory ='${req.body.userCategory}' where id = ${req.params.id}`,(err,resp)=>{
+                    if (err) {
+                        res.status(400).send(err);
+                    trail={
+                        moduleId: "11",
+                        actor: `${req.body.email}`,
+                        action: `${req.body.email} profile update failed `,
+                        status: "failed"
+                    }
+                    auditManager.logTrail(trail);
+                }
+                    
+                    res.send(`The details of user with id ${req.params.id} has been modified`);
+                    trail={
+                        moduleId: "11",
+                        actor: `${req.body.email}`,
+                        action: `${req.body.email} profile update successful `,
+                        status: "success"
+                    }
+                    auditManager.logTrail(trail);
+                })
+            }
+           
+        })
         
 
          /******************************** Delete Request **************************************/
         //Deleting records in the table
-        const adminDeleteRecord = (req,res)=>{
+        app.delete('/admin/:id',auth.authenticate,(req,res)=>{
             if(req.data.data.roleId == 1){
             connection.query(`delete from users where id = ${req.params.id}`,(err,resp)=>{
                 
@@ -286,10 +235,10 @@ const text = require('body-parser/lib/types/text');
                     auditManager.logTrail(trail);
             }
             
-        }
+        })
 
 /****************************************** User Login *************************************************/
-const userLogin = (req,res)=>{
+app.post('/login',(req,res)=>{
     connection.query(`select * from users where email = '${req.body.email}'`,(err,resp)=>{
         if (err || resp.length < 1) {
             let responseObject = {
@@ -341,9 +290,12 @@ const userLogin = (req,res)=>{
                          //res.send(accessToken)
                        let tokenData ={
                            "data": resp[0],
+                           message :`Login successful!`,
                            "Token":accessToken
                        }
-                       res.send(tokenData)
+                       
+                    res.send(tokenData).status(200);
+                       
                        trail={
                         moduleId: "11",
                         actor: `${req.body.email}`,
@@ -363,7 +315,7 @@ const userLogin = (req,res)=>{
         
        
     })
-}
+})
 
 /******************************************* Upload Profile Picture ******************************************/
 const storage = multer.diskStorage({
@@ -388,7 +340,7 @@ const upload = multer({storage: storage, fileFilter: fileFilter});
 
 //Route for uploading
 
-const updateProfilePic =  (req, res,next)=>{
+app.put('/users/profile/picture/:id',auth.authenticate,upload.single("image"),(req, res,next)=>{
     if(!req.file) { 
         res.status(406).send("Please upload an image ");
         trail={
@@ -415,18 +367,18 @@ const updateProfilePic =  (req, res,next)=>{
       })
     }
    
-}
+})
 
 /******************************************* View Profile Picture *****************************************/
-const viewProfilePic = (req,res)=>{
+app.get('/users/profile/picture/:id',auth.authenticate,(req,res)=>{
     connection.query(`select displayPicture from users where id = '${req.params.id}'`,(err,resp)=>{
         if (err) return err
 
         res.send(resp);
     })
-}
+})
    /******************************************* Delete Profile Picture *****************************************/
-   const deleteProfilePic = (req,res)=>{
+   app.delete('/users/profile/picture/:id',auth.authenticate,(req,res)=>{
     connection.query(`update users set displayPicture = '' where id = '${req.params.id}'`,(err,resp)=>{
         if (err) {
             res.status(400).send(err);
@@ -447,12 +399,12 @@ const viewProfilePic = (req,res)=>{
         }
         auditManager.logTrail(trail);
     })
-}
+})
 
 
 
 /****************************************** Forgot password *************************************************/
-  const forgotPassword =  (req,res)=>{
+   app.post('/forgotPassword',(req,res)=>{
     connection.query(`select * from users where email = '${req.body.email}'`,(err,resp)=>{
        
         if (err || resp.length < 1) {
@@ -477,12 +429,12 @@ const viewProfilePic = (req,res)=>{
     })
 
 
-   }  
+   })    
    
 
 /******************************************************************** Reset Password******************************************************/
 
-    const resetPassword = (req,res)=>{
+    app.put('/reset',auth.forgotPassword,(req,res)=>{
         // console.log(req.data.data.email)
         bcrypt.hash(req.body.password,10,(errh,hash)=>{
             if (errh) throw err
@@ -491,17 +443,11 @@ const viewProfilePic = (req,res)=>{
             res.status(200).send('Password successfully updated');
         })
     })
+})
+
+
+
+
+
 }
-
-
-
-
-
-
-module.exports = {getAllUser,getUserId,
-                  getUserByUser, userSignup,
-                  authActivate, userUpdateRecords,
-                  adminDeleteRecord,userLogin,
-                  updateProfilePic,viewProfilePic,
-                  deleteProfilePic,forgotPassword,resetPassword   
-    }
+module.exports = userController

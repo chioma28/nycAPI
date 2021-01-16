@@ -1,18 +1,18 @@
 const { response } = require('express');
-const sendEmail = require('../middleware/mail');
-const { connect } = require('../models/db.config');
+const sendMail = require('../middleware/mail');
+//const { connect } = require('../models/db.config');
 const auth = require('./authController');
 const auditManager = require('./trailController');
 /* ******************************* Contact controller ********************** */
-let contactController = (app)=>{
+
     var connection = require('../models/db.config');
 
 /* ******************************* Contact router ********************** */
-   // app.route('/contact')
+
 /******** GET ROUTE ********/
-        app.get('/contact',auth.authenticate,(req, res)=>{
+        const getContact =  (req, res, next)=>{
             if(req.data.data.roleId == 1){
-            connection.query(`select * from contact`, (err, resp)=>{
+            connection.query(`select * from contact`, (err, response)=>{
                 if (err){
                     res.send(err);
                     trail={
@@ -36,19 +36,20 @@ let contactController = (app)=>{
             })
         }
 
-        })
+        }
         /******** POST ROUTE ********/
-        app.post('/contact',(req,res)=>{
-            const { fullName, email, subject, message } = req.body;
-            connection.query(`insert into contact (fullName,email,subject,message) 
+       const postContact = (req,res, next)=>{
+            const { fullName, email, title, message } = req.body;
+            connection.query(`insert into contact (fullName,email,title,message) 
             values (
                     '${fullName}',
                      '${email}', 
-                    '${subject}', 
-                    '${message}')`), sendEmail(fullName,email,subject,message, (err, data)=>{
+                    '${title}', 
+                    '${message}')`), sendMail(fullName,email,title,message, (err, data)=>{
 
                         if(err){
-                            res.status(500).send(err);
+                            res.status(500).json({ message: 'Internal Error' });
+                            res.status({ message: 'Email sent!!!' });
                             trail={
                                 moduleId: "3",
                                 actor: ` anonymous ${req.body.email}`,
@@ -56,9 +57,8 @@ let contactController = (app)=>{
                                 status: "failed"
                             }
                             auditManager.logTrail(trail);
-                        } 
-                        else{
-                            res.status(200).send('Email sent successfully!');
+                        } else{
+                            res.status({ message: 'Email sent!!!' });
                             trail={
                                 moduleId: "3",
                                 actor: ` anonymous ${req.body.email}`,
@@ -70,26 +70,7 @@ let contactController = (app)=>{
 
                     })
 
-        })
-        // .post((req, res)=>{
-        //     connection.query(`insert into contact (id,fullName,email,title,message) 
-        //     values ('${req.body.id}',
-        //             '${req.body.fullName}',
-        //              '${req.body.email}', 
-        //             '${req.body.title}', 
-        //             '${req.body.message}')`,
-                    
-        //             (err, response)=>{
-        //                 if(err){
-        //                     console.log(err)
-        //                 }else{
-        //                     res.send("Your Message has been sent succesfully")
-        //                 }
-               
-        //     })
+        }
+        
 
-
-
-        // })
-}
-module.exports = contactController
+module.exports = {getContact, postContact}
