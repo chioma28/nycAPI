@@ -98,7 +98,7 @@ const text = require('body-parser/lib/types/text');
       
     /******************************** Post Request **************************************/
     //adding records into the table
-   const userSignup =  (req, res,next) => { 
+   const userSignup =  (req, res) => { 
       
          // validationResult function checks whether 
         // an error occurs or not and returns an object 
@@ -112,71 +112,121 @@ const text = require('body-parser/lib/types/text');
         // If no error occurs, then 
         
         //check if email exists,
-      connection.query(`select email from users where email = '${req.body.email}'`,(err,response)=>{
-        if(response.length > 0 ){
-               res.send('This email already exists!');
-               }
-      else{
+//       connection.query(`select email from users where email = '${req.body.email}'`,(err,response)=>{
+//         if(response.length > 0 ){
+//                res.send('This email already exists!');
+//                }
+//       else{
         
         
-            bcrypt.hash(req.body.password,10,(errh,hash)=>{
-                if (errh) {
-                    res.status(402).send(err);
-                }
+//             bcrypt.hash(req.body.password,10,(errh,hash)=>{
+//                 if (errh) {
+//                     res.status(402).send(err);
+//                 }
 
 
 
-                // Sending verification link to user
+//                 // Sending verification link to user
 
-               var otpToken = require('crypto').randomBytes(64).toString('hex');
-               const secretCode = encodeURIComponent(otpToken);
+//                var otpToken = require('crypto').randomBytes(64).toString('hex');
+//                const secretCode = encodeURIComponent(otpToken);
 
-                    connection.query(`insert into users (roleId,businessName,email,password, otp) 
-                    values ('2',
-                        '${req.body.businessName}',
-                        '${req.body.email}',
-                        '${hash}', '${otpToken}')`,(err,resp)=>{
-                            if(err)
-                            {
-                                res.status(400).send(err);
-                            }
-    const newUserId = resp.insertId      
-    var accessToken = jwt.sign({uid : newUserId, token: secretCode}, process.env.SIGNUP_TOKEN, {expiresIn: '2h'})
+//                     connection.query(`insert into users (roleId,businessName,email,password, otp) 
+//                     values ('2',
+//                         '${req.body.businessName}',
+//                         '${req.body.email}',
+//                         '${hash}', '${otpToken}')`,(err,resp)=>{
+//                             if(err)
+//                             {
+//                                 res.status(400).send(err);
+//                             }
+//     const newUserId = resp.insertId      
+//     var accessToken = jwt.sign({uid : newUserId, token: secretCode}, process.env.SIGNUP_TOKEN, {expiresIn: '2h'})
 
-    var linkCode = encodeURIComponent(Buffer.from(`${accessToken}`, 'binary').toString('base64'));
+//     var linkCode = encodeURIComponent(Buffer.from(`${accessToken}`, 'binary').toString('base64'));
 
   
-    var message = `Hi ${req.body.businessName}, <br/>
-  <p>Welcome to <b>naijayellowcatagogue</b>, you are a click away from accessing your account. Click on the button below to activate your account.</p>
-  <center><a href="${process.env.BASE_URL}/auth/activation/${linkCode }"><button style="padding: 12px; color: white; background: #000066; border: none; border-radius: 6px;">Activate My Account</button></a></center> 
-  <p>Or Copy the link below to your browser:<br/>
-  <a href="${process.env.BASE_URL}/auth/activation/${linkCode}">${process.env.BASE_URL}/auth/activation/${linkCode}}</a></p>
-  <br/>Thanks.`
+//     var message = `Hi ${req.body.businessName}, <br/>
+//   <p>Welcome to <b>naijayellowcatagogue</b>, you are a click away from accessing your account. Click on the button below to activate your account.</p>
+//   <center><a href="${process.env.BASE_URL}/auth/activation/${linkCode }"><button style="padding: 12px; color: white; background: #000066; border: none; border-radius: 6px;">Activate My Account</button></a></center> 
+//   <p>Or Copy the link below to your browser:<br/>
+//   <a href="${process.env.BASE_URL}/auth/activation/${linkCode}">${process.env.BASE_URL}/auth/activation/${linkCode}}</a></p>
+//   <br/>Thanks.`
 
 
-    const sendEmail = ( req.body.businessName, "naijayellowcatalog@gmail.com", "Registration successful, activate your account", message, req.body.email )
+//     const sendEmail = ( req.body.businessName, "naijayellowcatalog@gmail.com", "Registration successful, activate your account", message, req.body.email )
   
 
-                            res.send(`User ${req.body.businessName} has been successfully registered`);
+//                             res.send(`User ${req.body.businessName} has been successfully registered`);
                             
-                            trail={
-                                moduleId: "11",
-                                actor: `${req.body.email}`,
-                                action: `${req.body.email} has been successfully registered `,
-                                status: "success"
-                            }
-                            auditManager.logTrail(trail);
-                        })  
+//                             trail={
+//                                 moduleId: "11",
+//                                 actor: `${req.body.email}`,
+//                                 action: `${req.body.email} has been successfully registered `,
+//                                 status: "success"
+//                             }
+//                             auditManager.logTrail(trail);
+//                         })  
                     
     
                 
             
     
-            }) 
-        } 
+//             }) 
+//         } 
         
        
-    })
+//     })
+connection.query(`select email from users where email = '${req.body.email}'`,(err,response)=>{
+    if(response.length > 0 && response){
+        let responseObject = {
+            message : 'This email already exists!',
+            status : 400 
+        }
+        res.send(responseObject).status(400);
+           
+           }
+  else{
+    
+    
+        bcrypt.hash(req.body.password,10,(errh,hash)=>{
+            if (errh) {
+                res.status(402).send(err);
+            }
+            //const otpCode = randomstring.generate(); 
+                             
+                connection.query(`insert into users (roleId,businessName,email,password) 
+                values ('2',
+                    '${req.body.businessName}',
+                    '${req.body.email}',
+                    '${hash}')`,(err,resp)=>{
+                        if(err)
+                        {
+                            res.status(400).send(err);
+                        }
+                        let responseObject = {
+                            message :`User ${req.body.businessName} has been successfully registered`,
+                            status : 200 
+                        }
+                        res.send(responseObject).status(200);
+                        trail={
+                            moduleId: "11",
+                            actor: `${req.body.email}`,
+                            action: `${req.body.email} has been successfully registered `,
+                            status: "success"
+                        }
+                        auditManager.logTrail(trail);
+                    })  
+                
+
+            
+        
+
+        }) 
+    } 
+    
+   
+})
         }
         
    const authActivate = (req, res)=>{
