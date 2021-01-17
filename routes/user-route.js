@@ -1,6 +1,7 @@
 // Required files
 const express = require('express');
 const multer  =require('multer');
+const path = require('path');
 
 
 // Required Controller
@@ -57,7 +58,7 @@ router.post('/signup', [
 
 router.get('/auth/activation', userController.authActivate)
 
-router.put('/users/profile', auth.authenticate, userController.userUpdateRecords)//updating user records
+router.put('/users/profile', auth.authenticate, upload.single("image"), userController.userUpdateRecords)
 
 
 router.delete('/admin/:id', auth.authenticate, userController.adminDeleteRecord)
@@ -65,7 +66,7 @@ router.delete('/admin/:id', auth.authenticate, userController.adminDeleteRecord)
 router.post('/login', userController.userLogin)
 
 
-router.put('/users/profile/picture/:id', auth.authenticate,upload.single("image"), userController.updateProfilePic)
+//router.put('/users/profile/picture/:id', auth.authenticate,upload.single("image"), userController.updateProfilePic)
 
 router.get('/users/profile/picture/:id', auth.authenticate, userController.viewProfilePic)
 

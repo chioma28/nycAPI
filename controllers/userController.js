@@ -98,7 +98,7 @@ const text = require('body-parser/lib/types/text');
       
     /******************************** Post Request **************************************/
     //adding records into the table
-   const userSignup =  (req, res) => { 
+   const userSignup =  (req, res,next) => { 
       
          // validationResult function checks whether 
         // an error occurs or not and returns an object 
@@ -114,12 +114,7 @@ const text = require('body-parser/lib/types/text');
         //check if email exists,
       connection.query(`select email from users where email = '${req.body.email}'`,(err,response)=>{
         if(response.length > 0 ){
-            let responseObject = {
-                message : 'This email already exists!',
-                status : 400 
-            }
-            res.send(responseObject).status(400);
-               
+               res.send('This email already exists!');
                }
       else{
         
@@ -162,11 +157,7 @@ const text = require('body-parser/lib/types/text');
     const sendEmail = ( req.body.businessName, "naijayellowcatalog@gmail.com", "Registration successful, activate your account", message, req.body.email )
   
 
-                    let responseObject = {
-                        message :`User ${req.body.businessName} has been successfully registered`,
-                        status : 200 
-                    }
-                    res.send(responseObject).status(200);
+                            res.send(`User ${req.body.businessName} has been successfully registered`);
                             
                             trail={
                                 moduleId: "11",
@@ -228,34 +219,77 @@ const text = require('body-parser/lib/types/text');
 
           /******************************** Put Request **************************************/
           //user updating records after logging in the table
-       const userUpdateRecords =  (req,res)=>{
-        connection.query(`update users set phoneNumber = '${req.body.phoneNumber}',
-        website ='${req.body.website}',
-        description ='${req.body.description}',
-        state ='${req.body.state}',
-        city ='${req.body.city}',
-        userCategory ='${req.body.userCategory}' where id = ${req.data.data.id}`,(err,resp)=>{
-           if (err) {
-               res.status(400).send(err);
-           trail={
-               moduleId: "11",
-               actor: `${req.body.email}`,
-               action: `${req.body.email} profile update failed `,
-               status: "failed"
-           }
-           auditManager.logTrail(trail);
-       }
-           
-           res.send(`Your profile has been successfully updated`);
-           trail={
-               moduleId: "11",
-               actor: `${req.body.email}`,
-               action: `${req.body.email} profile update successful `,
-               status: "success"
-           }
-           auditManager.logTrail(trail);
-       })
+          //profile picture upload
+          const storage = multer.diskStorage({
+            destination: (req,file,cb)=>{
+                cb(null,"uploads");
+            },
+            filename:(req,file,cb)=>{
+                cb(null,Date.now() + path.extname(file.originalname));
+            },
+        });
+        
+        const fileFilter = (req,file,cb) =>{
+            if(file.mimetype == "image/jpeg" || file.mimetype == "image/png" || file.mimetype == "image/jpg"){
+                cb(null,true);
+            }
+            else{
+                cb(null,false);
+            }
+        }
+        const upload = multer({storage: storage, fileFilter: fileFilter});
 
+
+       const userUpdateRecords =  (req,res)=>{
+        if(!req.file) { 
+            res.status(406).send("Please upload an image ");
+            trail={
+                moduleId: "1",
+                actor: `${req.data.data.email}`,
+                action: `$${req.data.data.email} advert upload failed `,
+                status: "failed"
+            }
+            auditManager.logTrail(trail);
+        }   
+        else{
+            var imgSrc = process.env.IMG_URL + req.file.filename
+            var updateUserDetails = `update users set displayPicture = ?,
+            phoneNumber = '${req.body.phoneNumber}',
+            website ='${req.body.website}',
+            description ='${req.body.description}',
+            state ='${req.body.state}',
+            city ='${req.body.city}',
+            userCategory ='${req.body.userCategory}',
+            fax ='${req.body.fax}'
+            where id = ${req.data.data.id}`
+            
+            connection.query(updateUserDetails,[imgSrc],(err,resp)=>{
+               if (err) {
+                   res.status(400).send(err);
+               trail={
+                   moduleId: "11",
+                   actor: `${req.body.email}`,
+                   action: `${req.body.email} profile update failed `,
+                   status: "failed"
+               }
+               auditManager.logTrail(trail);
+           }
+               let responseObject = {
+                   message : "Your profile has been successfully updated!",
+                   status : 200
+               }
+               res.send(responseObject).status(200);
+               trail={
+                   moduleId: "11",
+                   actor: `${req.body.email}`,
+                   action: `${req.body.email} profile update successful `,
+                   status: "success"
+               }
+               auditManager.logTrail(trail);
+           })
+        }
+
+        
         }
         
 
@@ -292,11 +326,8 @@ const text = require('body-parser/lib/types/text');
 const userLogin = (req,res)=>{
     connection.query(`select * from users where email = '${req.body.email}'`,(err,resp)=>{
         if (err || resp.length < 1) {
-            let responseObject = {
-                message :'Invalid email or password',
-                status : 400 
-            }
-            res.send(responseObject).status(400);
+            res.statusCode=401;
+            res.send("Invalid email or password");
             trail={
                 moduleId: "11",
                 actor: "anonymous",
@@ -312,11 +343,8 @@ const userLogin = (req,res)=>{
                      
                  
                  if (result === false) {
-                    let responseObject = {
-                        message :`Invalid email or password`,
-                        status : 400 
-                    }
-                    res.send(responseObject).status(400);
+                     res.statusCode = 401;
+                     res.send('Invalid email or password');
                      trail={
                         moduleId: "11",
                         actor: "anonymous",
@@ -366,56 +394,56 @@ const userLogin = (req,res)=>{
 }
 
 /******************************************* Upload Profile Picture ******************************************/
-const storage = multer.diskStorage({
-    destination: (req,file,cb)=>{
-        cb(null,"uploads");
-    },
-    filename:(req,file,cb)=>{
-        cb(null,Date.now() + path.extname(file.originalname));
-    },
-});
+// const storage = multer.diskStorage({
+//     destination: (req,file,cb)=>{
+//         cb(null,"uploads");
+//     },
+//     filename:(req,file,cb)=>{
+//         cb(null,Date.now() + path.extname(file.originalname));
+//     },
+// });
 
-const fileFilter = (req,file,cb) =>{
-    if(file.mimetype == "image/jpeg" || file.mimetype == "image/png" || file.mimetype == "image/jpg"){
-        cb(null,true);
-    }
-    else{
-        cb(null,false);
-    }
-}
-const upload = multer({storage: storage, fileFilter: fileFilter});
+// const fileFilter = (req,file,cb) =>{
+//     if(file.mimetype == "image/jpeg" || file.mimetype == "image/png" || file.mimetype == "image/jpg"){
+//         cb(null,true);
+//     }
+//     else{
+//         cb(null,false);
+//     }
+// }
+// const upload = multer({storage: storage, fileFilter: fileFilter});
    
 
-//Route for uploading
+// //Route for uploading
 
-const updateProfilePic =  (req, res,next)=>{
-    if(!req.file) { 
-        res.status(406).send("Please upload an image ");
-        trail={
-            moduleId: "11",
-            actor: `${req.body.email}`,
-            action: `${req.body.email} profile picture upload failed `,
-            status: "failed"
-        }
-        auditManager.logTrail(trail);
-    }
-    else{
-      var imgSrc = 'http://localhost:8600/uploads/' + req.file.filename
-      var insertImg = `update users set displayPicture = ?  where id = '${req.params.id}'`
-      connection.query(insertImg,[imgSrc],(err,result)=>{
-          if (err) throw err
-          res.send('Image successfully uploaded');
-          trail={
-            moduleId: "11",
-            actor: `${req.body.email}`,
-            action: `${req.body.email}successfully uploaded profile picture `,
-            status: "success"
-        }
-        auditManager.logTrail(trail);
-      })
-    }
+// const updateProfilePic =  (req, res,next)=>{
+//     if(!req.file) { 
+//         res.status(406).send("Please upload an image ");
+//         trail={
+//             moduleId: "11",
+//             actor: `${req.body.email}`,
+//             action: `${req.body.email} profile picture upload failed `,
+//             status: "failed"
+//         }
+//         auditManager.logTrail(trail);
+//     }
+//     else{
+//       var imgSrc = 'http://localhost:8600/uploads/' + req.file.filename
+//       var insertImg = `update users set displayPicture = ?  where id = '${req.params.id}'`
+//       connection.query(insertImg,[imgSrc],(err,result)=>{
+//           if (err) throw err
+//           res.send('Image successfully uploaded');
+//           trail={
+//             moduleId: "11",
+//             actor: `${req.body.email}`,
+//             action: `${req.body.email}successfully uploaded profile picture `,
+//             status: "success"
+//         }
+//         auditManager.logTrail(trail);
+//       })
+//     }
    
-}
+// }
 
 /******************************************* View Profile Picture *****************************************/
 const viewProfilePic = (req,res)=>{
@@ -501,7 +529,6 @@ const viewProfilePic = (req,res)=>{
 module.exports = {getAllUser,getUserId,
                   getUserByUser, userSignup,
                   authActivate, userUpdateRecords,
-                  adminDeleteRecord,userLogin,
-                  updateProfilePic,viewProfilePic,
+                  adminDeleteRecord,userLogin,viewProfilePic,
                   deleteProfilePic,forgotPassword,resetPassword   
     }
