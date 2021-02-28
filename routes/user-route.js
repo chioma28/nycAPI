@@ -46,15 +46,17 @@ router.get('/users/:id', auth.authenticate, userController.getUserByUser)
 
 
 
-router.post('/signup', [ 
-    ///validation
-    check('email', 'invalid email,please put in a valid email') 
-                    .isEmail(), 
-    check('businessName', 'Business name length should not be less than 5 characters') 
-                    .isLength({ min: 6}), 
-    check('password', 'Password length should not be less than 8 characters') 
-    .isLength({ min : 8 })
-  ], userController.userSignup)
+ router.post('/signup', 
+ //[ 
+//     ///validation
+//     check('email', 'invalid email,please put in a valid email') 
+//                     .isEmail(), 
+//     check('businessName', 'Business name length should not be less than 5 characters') 
+//                     .isLength({ min: 6}), 
+//     check('password', 'Password length should not be less than 8 characters') 
+//     .isLength({ min : 8 })
+//   ], 
+userController.userSignup)
 
 router.get('/auth/activation', userController.authActivate)
 
